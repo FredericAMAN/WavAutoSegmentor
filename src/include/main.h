@@ -57,4 +57,5 @@ int num_total;
 int num_processed;
 int num_skipped;
 
+void LOG(char str[]);
 #endif

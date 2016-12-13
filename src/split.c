@@ -45,6 +45,7 @@ int frame_index;
 short int *wav_split;
 
 void split_init() {
+	char str_log[10000];
 	
 	frame_index = 0;
 
@@ -53,7 +54,8 @@ void split_init() {
 	data_wavsplit = malloc(sizeof(data_recording));
 	//data_wavsplit->recordedFrames = malloc(sizeof(short int));
 	if (G_Detection == NULL) {
-		fprintf(stderr, "Allocation Impossible <G_Detection>\n");
+		sprintf(str_log, "Allocation Impossible <G_Detection>\n");
+		LOG(str_log);
 		exit(EXIT_FAILURE);
 	}
 	init_detection(G_Detection);
@@ -84,6 +86,7 @@ int split_process(char *file) {
 	char str_copy_wav[200];
 	char syst[1000];
 	double mean_d = 0;
+	char str_log[10000];
 
 	header_file header;
 	header.bits_per_sample = 0;
@@ -94,18 +97,20 @@ int split_process(char *file) {
 	strcpy(str_basename, basename(file));
 	strcpy(str_dirname, dirname(file));
 
-	printf ("\n**********************************\nInput file:\n");
-
+	sprintf(str_log, "\n**********************************\nInput file:\n");
+	LOG(str_log);
 	num_total++;
 	if (infile) {
 		header.sample_rate = lire_entete_wav(infile2, &header.bits_per_sample, &header.num_channels, &header.data_size);
 		if (header.sample_rate != -1) {
 			if (header.num_channels > 1) {
-				fprintf (stderr, "Warning: The WAV file is not mono! <%s> is skipped\n", file_name);
+				sprintf (str_log, "Warning: The WAV file is not mono! <%s> is skipped\n", file_name);
+				LOG(str_log);
 				num_skipped++;
 			}else {
 				lire_entete_wav(infile, &header.bits_per_sample, &header.num_channels, &header.data_size);
-				printf("\tName:\t\t\t%s\n\tFormat:\t\t\tWAV\n\tChannels:\t\t%d\n\tSample rate (Hz):\t%d\n\tBits per sample:\t%d\n\tDuration (s):\t\t%d\n", file_name, header.num_channels, header.sample_rate, header.bits_per_sample, header.data_size/header.sample_rate);
+				sprintf(str_log, "\tName:\t\t\t%s\n\tFormat:\t\t\tWAV\n\tChannels:\t\t%d\n\tSample rate (Hz):\t%d\n\tBits per sample:\t%d\n\tDuration (s):\t\t%d\n", file_name, header.num_channels, header.sample_rate, header.bits_per_sample, header.data_size/header.sample_rate);
+				LOG(str_log);
 				G_Detection->state_detection = malloc(sizeof(short int)*(header.data_size+BUFFSIZE));
 				G_Detection->is_creating_wav = malloc(sizeof(short int)*(header.data_size+BUFFSIZE));
 				G_Detection->tab_split_wav = malloc(sizeof(short int)*(header.data_size+BUFFSIZE));
@@ -118,8 +123,8 @@ int split_process(char *file) {
 				}
 				init_detection(G_Detection);
 		
-				printf("\nStart splitting...\n");
-
+				sprintf(str_log, "\nStart splitting...\n");
+				LOG(str_log);
 
 				while (!feof(infile)) {
 					buffsize = fread(buff16, sizeof(short int), BUFFSIZE, infile); // Reading data in chunks of BUFFSIZE
@@ -177,9 +182,10 @@ int split_process(char *file) {
 				ecrire_entete_wav(outfile_split_wav, &header.sample_rate, &header.bits_per_sample, &header.num_channels, header.data_size);
 				fwrite(G_Detection->tab_split_wav, sizeof(short int), (header.data_size+buffsize), outfile_split_wav); // Writing read data into output file
 				copy_file(file_name, str_copy_wav);
-				printf("...End splitting\n");
-				printf("\nOutput files:\n\tNumber of segments:\t%d\n\tDirectory:\t\t%s\n\tFormat:\t\t\tWAV\n\tChannels:\t\t%d\n\tSample rate (Hz):\t%d\n\tBits per sample:\t%d\n\tMean duration (s):\t%.2f\n", nb_split, globalArgs.outputRep, header.num_channels, header.sample_rate, header.bits_per_sample, mean_d);
-
+				sprintf(str_log, "...End splitting\n");
+				LOG(str_log);
+				sprintf(str_log, "\nOutput files:\n\tNumber of segments:\t%d\n\tDirectory:\t\t%s\n\tFormat:\t\t\tWAV\n\tChannels:\t\t%d\n\tSample rate (Hz):\t%d\n\tBits per sample:\t%d\n\tMean duration (s):\t%.2f\n", nb_split, globalArgs.outputRep, header.num_channels, header.sample_rate, header.bits_per_sample, mean_d);
+				LOG(str_log);
 				fclose(outfile_detect);	
 				fclose(infile);
 				fclose(infile2);
@@ -199,12 +205,14 @@ int split_process(char *file) {
 				num_processed++;
 			}
 		} else {
-			fprintf (stderr, "Warning: The file is not a valid wav file! <%s> is skipped\n", file_name);
+			sprintf (str_log, "Warning: The file is not a valid wav file! <%s> is skipped\n", file_name);
+			LOG(str_log);
 			num_skipped++;			
 		}
 
 	} else {
-		fprintf (stderr, "Warning: Can not open the file! <%s> is skipped\n", file_name);
+		sprintf (str_log, "Warning: Can not open the file! <%s> is skipped\n", file_name);
+		LOG(str_log);
 		num_skipped++;	
 	}
 

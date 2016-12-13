@@ -50,6 +50,8 @@
  * @author Frederic Aman <frederic.aman@imag.fr> 
  */
 
+FILE *f_log;
+
 void display_usage() {
 	printf("Usage: WavAutoSegmentor [-i <str>] [-o <str>] [-s <double>] [-e <double>] [-b <double>] [-a <double>] [-p <double>]\n");
 	printf("\t-i\t<default: data/in>\tDirectory of the input WAV files (mono channel)\n");
@@ -65,7 +67,7 @@ void display_usage() {
 
 
 int main(int argc, char **argv) {
-
+	char str_log[10000];
 	struct tm* ptm;
 	struct timeval tv;
 	char timestamp[200];
@@ -120,7 +122,7 @@ int main(int argc, char **argv) {
 				display_usage();
 				return EXIT_SUCCESS;
 			case 'v':
-				printf ("WavAutoSegmentor v1.0\n");
+				printf("WavAutoSegmentor v1.0\n");
 				return EXIT_SUCCESS;
 			case '?':
 				if (optopt == 'i' || optopt == 'o' || optopt == 's' || optopt == 'e' || optopt == 'b' || optopt == 'a' || optopt == 'p') {
@@ -138,7 +140,7 @@ int main(int argc, char **argv) {
 	}
 
 	for (index = optind; index < argc; index++) {
-		printf ("Non-option argument %s\n", argv[index]);
+		printf("Non-option argument %s\n", argv[index]);
 	}
 
 	strcpy(out_d, globalArgs.outputRep);
@@ -153,11 +155,13 @@ int main(int argc, char **argv) {
 	mkdir(globalArgs.outputRep, S_IRUSR | S_IWUSR | S_IXUSR);
 	mkdir(out_debug_dir, S_IRUSR | S_IWUSR | S_IXUSR);
 
-	//strcpy(globalArgs.outputRep, out_dir);
+	sprintf(str_log, "%s/debug/log.txt", globalArgs.outputRep);
+	f_log = fopen(str_log,"wb");
 
-
-	printf("WavAutoSegmentor v1.0\n");
-	printf("\t-i Input directory:\t\t\t%s\t\t<default: data/in>\n\t-o Output directory:\t\t\t%s\t<default: data/out>\n\t-s Threshold start:\t\t\t%.10f\t<default: 0.0000005000>\n\t-e Threshold end:\t\t\t%.10f\t<default: 0.0000005000>\n\t-b Added duration before detection:\t%.3f\t\t<default: 0.000>\n\t-a Added duration after detection:\t%.3f\t\t<default: 0.000>\n\t-w Maximum duration of a silence:\t%.3f\t\t<default: 0.250>\n", globalArgs.inputRep, out_d, globalArgs.thresholdStart, globalArgs.thresholdEnd, globalArgs.timeBefore, globalArgs.timeAfter, globalArgs.timePending);
+	sprintf(str_log, "WavAutoSegmentor v1.0\n");
+	LOG(str_log);
+	sprintf(str_log, "\t-i Input directory:\t\t\t%s\t\t<default: data/in>\n\t-o Output directory:\t\t\t%s\t<default: data/out>\n\t-s Threshold start:\t\t\t%.10f\t<default: 0.0000005000>\n\t-e Threshold end:\t\t\t%.10f\t<default: 0.0000005000>\n\t-b Added duration before detection:\t%.3f\t\t<default: 0.000>\n\t-a Added duration after detection:\t%.3f\t\t<default: 0.000>\n\t-w Maximum duration of a silence:\t%.3f\t\t<default: 0.250>\n", globalArgs.inputRep, out_d, globalArgs.thresholdStart, globalArgs.thresholdEnd, globalArgs.timeBefore, globalArgs.timeAfter, globalArgs.timePending);
+	LOG(str_log);
 
 	sprintf(syst, "echo \"name|fs|bit rate|start index|end index|start time|end time|duration|SNR|data octets\" >> %s/debug/split.txt", globalArgs.outputRep);				
 	system(syst);
@@ -179,9 +183,24 @@ int main(int argc, char **argv) {
 		}
 		closedir(rep);
 	}
-	printf("\n**********************************\nNumber of input files processed: %d/%d (%d/%d skipped)\n", num_processed, num_total, num_skipped, num_total);
-
+	sprintf(str_log, "\n**********************************\nNumber of input files processed: %d/%d (%d/%d skipped)\n", num_processed, num_total, num_skipped, num_total);
+	LOG(str_log);
+	fclose(f_log);
 	return EXIT_SUCCESS;
 }
+
+void LOG(char str[]){
+	if (f_log != NULL) {
+		fprintf (f_log, "%s", str);
+		printf("%s", str);
+		fflush(NULL);
+	}
+}
+
+
+
+
+
+
 
 

@@ -168,6 +168,8 @@ The file split.txt in the debug folder contains information about:
 * SNR: signal to noise ratio of the segment WAV file
 * data octets: number of octets of data in the segment WAV file (doesn't take into account the 44 octets of the WAV file header)
 
+The file log.txt in the debug folder is a copy of the standard output.
+
 N.B.: If overlaps between segments occur (namely if the -b and -a options have large values and segments are very close), the rectangular values in detect.wav and split.wav add up.
 
 
